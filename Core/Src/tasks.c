@@ -30,6 +30,7 @@ void m_mainTask(void *argument)
 	memset(&data, '\0',sizeof(Data_Q));
 	while(1)
 	{
+		//CDC_Transmit_FS((uint8_t*)"TEST\n\r", 6);
 
 		osStatus_t rv = osMessageQueueGet(outputValuessHanlde, &data, 0, 10);
 		if(rv == osOK)
@@ -44,14 +45,15 @@ void m_readValues(void *argument)
 	extern osMessageQueueId_t outputValuessHanlde;
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADCValues, 8);
 	HAL_TIM_Base_Start_IT(&htim2);
-	Data_Q *data;
-	char* str;
-	char* channel;
+	Data_Q data;
+	char str[100];
+	char channel[15];
 	memset(&data,'\0', sizeof(Data_Q));
 	while(1)
 	{
 
-		str = pvPortMalloc(100*sizeof(char));
+		//str = calloc(100, sizeof(char));
+		memset((char*)&str,'\0',100*sizeof(char));
 		//check active channels and test time duration.
 		//setup for next steps
 
@@ -97,7 +99,9 @@ void m_readValues(void *argument)
 		for(int i = 0; i<8; i++){
 			if(channels.active[i]==TestRunnig)
 			{
-				channel = pvPortMalloc(12*sizeof(char));
+
+				//channel = calloc(15,sizeof(char));
+				memset((char*)&channel,'\0',15*sizeof(char));
 				channels.channel[i].value = ADCValues[i];
 
 				if(channels.unit[i] == uA)
@@ -116,7 +120,7 @@ void m_readValues(void *argument)
 				}
 				else
 				{
-					sprintf(channel,"[%d]%ld{%s}",
+					sprintf(channel,"[%d]%ld{%s};",
 							i+1,channels.
 							channel[i].value*prescaler_mA,
 							"mA");
@@ -133,9 +137,9 @@ void m_readValues(void *argument)
 		//
 		if(strlen(str)>0)
 		{
-			memcpy(data->data, str,100);
+			memcpy(data.data, str,100);
 			osMessageQueuePut(outputValuessHanlde, &data, 0,10);
-
+			memset(&str,'\0',100);
 		}
 			osDelay(100);
 	}

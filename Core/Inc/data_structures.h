@@ -33,7 +33,7 @@ typedef struct{
 	int32_t testtime;
 	uint32_t threshold_uA;
 	uint32_t threshold_mA;
-	uint8_t activeChanelsCount;
+	uint8_t activeChanelsCount[8];
 }TestControler;
 
 typedef struct{
@@ -46,11 +46,29 @@ enum{
 	uA,
 	mA
 };
+
 enum{
 	TestRunnig,
 	TestEndDeviceIn,
 	DeviceOut
 };
+
+enum{
+	Channel1,
+	Channel2,
+	Channel3,
+	Channel4,
+	Channel5,
+	Channel6,
+	Channel7,
+	Channel8,
+};
+
+enum{
+	Active,
+	Inactive
+};
+
 static const uint16_t InputPins[8] = {
 		GPIO_PIN_4,
 		GPIO_PIN_5,

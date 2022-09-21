@@ -13,7 +13,7 @@
 void initTimer(TestTimer *obj);
 void resetTimer(TestTimer *obj);
 void initTestControler(TestControler *obj);
-void setTestControler(TestControler *obj, int32_t time, uint32_t uA, uint32_t mA, uint8_t ch);
+void setTestControler(TestControler *obj, int32_t time, uint32_t uA, uint32_t mA, uint8_t *ch);
 void resetTestControler(TestControler *obj);
 void initChannelsControler(ChannelsControler *obj);
 

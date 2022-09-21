@@ -21,15 +21,15 @@ void resetTimer(TestTimer *obj)
 
 void initTestControler(TestControler *obj)
 {
-	obj->activeChanelsCount = 8;
+	memset(obj->activeChanelsCount, 0, (size_t)8);
 	obj->testtime = 20; // in [s]
 	obj->threshold_mA = 100; //need to check and add const value to define
 	obj->threshold_uA = 4050;
 }
 
-void setTestControler(TestControler *obj, int32_t time, uint32_t uA, uint32_t mA, uint8_t ch)
+void setTestControler(TestControler *obj, int32_t time, uint32_t uA, uint32_t mA, uint8_t *ch)
 {
-	obj->activeChanelsCount = ch;
+	memcpy(obj->activeChanelsCount, ch, (size_t)8);
 	obj->testtime = time;
 	obj->threshold_uA = uA;
 	obj->threshold_mA = mA;

@@ -23,8 +23,8 @@ void initTestControler(TestControler *obj)
 {
 	memset(obj->activeChanelsCount, 0, (size_t)8);
 	obj->testtime = 20; // in [s]
-	obj->threshold_mA = 100; //need to check and add const value to define
-	obj->threshold_uA = 4050;
+	obj->threshold_mA = 50; //need to check and add const value to define
+	obj->threshold_uA = 4080;
 }
 
 void setTestControler(TestControler *obj, int32_t time, uint32_t uA, uint32_t mA, uint8_t *ch)

@@ -16,7 +16,7 @@
 #define prescaler_mA 32 // 0,0132 * (1/4096) * 10^6
 
 typedef struct{
-	char data[100];
+	char data[150];
 }Data_Q;
 
 typedef struct{

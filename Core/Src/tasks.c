@@ -138,6 +138,7 @@ void m_readValues(void *argument)
 		//
 		if(strlen(data.data)>0)
 		{
+			strcat(data.data, "\n\r");
 			osMessageQueuePut(outputValuessHanlde, &data, 0,10);
 		}
 			osDelay(50);

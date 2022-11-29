@@ -22,7 +22,7 @@ void resetTimer(TestTimer *obj)
 void initTestControler(TestControler *obj)
 {
 	memset(obj->activeChanelsCount, 0, (size_t)8);
-	obj->testtime = 20; // in [s]
+	obj->testtime = 60; // in [s]
 	obj->threshold_mA = 50; //need to check and add const value to define
 	obj->threshold_uA = 4080;
 }

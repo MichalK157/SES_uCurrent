@@ -99,6 +99,7 @@ void m_readValues(void *argument)
 		{
 			if(mainControlers.activeChanelsCount[i] == Active)
 			{
+
 				if(channels.active[i]==TestRunnig)
 				{
 
@@ -127,8 +128,10 @@ void m_readValues(void *argument)
 								"mA");
 						strcat(data.data,channel);
 						if(channels.channel[i].value <= mainControlers.threshold_mA)
+						{
 							channels.unit[i] = uA;
-						HAL_GPIO_WritePin(GPIOC, OutputPins[i], GPIO_PIN_RESET);
+							HAL_GPIO_WritePin(GPIOC, OutputPins[i], GPIO_PIN_RESET);
+						}
 					}
 				}
 				else

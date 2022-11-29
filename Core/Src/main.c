@@ -54,6 +54,11 @@ TIM_HandleTypeDef htim2;
 
 /* Definitions for mainTask */
 
+/* Definitions for myQueue01 */
+osMessageQueueId_t myQueue01Handle;
+const osMessageQueueAttr_t myQueue01_attributes = {
+  .name = "myQueue01"
+};
 /* USER CODE BEGIN PV */
 osThreadId_t mainTaskHandle;
 const osThreadAttr_t mainTask_attributes = {
@@ -176,6 +181,7 @@ int main(void)
 
   /* Create the queue(s) */
   /* creation of myQueue01 */
+  myQueue01Handle = osMessageQueueNew (16, sizeof(uint16_t), &myQueue01_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   //outputValuessHanlde = xQueueCreate(50,100*sizeof(char));
@@ -185,6 +191,7 @@ int main(void)
 
   /* Create the thread(s) */
   /* creation of mainTask */
+  mainTaskHandle = osThreadNew(StartDefaultTask, NULL, &mainTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
 
@@ -466,7 +473,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, BSS_G1_Pin|BSS_G2_Pin|BSS_G3_Pin|BSS_G4_Pin
-                          |BSS_G5_Pin|BSS_G6_Pin|BSS_G7_Pin|BSS_G8_Pin, GPIO_PIN_RESET);
+                          |BSS_G5_Pin|BSS_G6_Pin|BSS_G7_Pin|BSS_G8_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : BSS_G1_Pin BSS_G2_Pin BSS_G3_Pin BSS_G4_Pin
                            BSS_G5_Pin BSS_G6_Pin BSS_G7_Pin BSS_G8_Pin */
@@ -497,6 +504,19 @@ static void MX_GPIO_Init(void)
   * @param  argument: Not used
   * @retval None
   */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void *argument)
+{
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END 5 */
+}
 
  /**
   * @brief  Period elapsed callback in non blocking mode

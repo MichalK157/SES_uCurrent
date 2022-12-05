@@ -64,7 +64,7 @@ osThreadId_t mainTaskHandle;
 const osThreadAttr_t mainTask_attributes = {
   .name = "mainTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityAboveNormal,
 };
 
 osThreadId_t readValuesHandle;
@@ -76,7 +76,7 @@ const osThreadAttr_t readValues_attributes = {
 		.cb_size = sizeof(readValues_CB),
 		.stack_mem = &readValuesBuffer[0],
 		.stack_size = sizeof(readValuesBuffer),
-		.priority = (osPriority_t) osPriorityAboveNormal
+		.priority = (osPriority_t) osPriorityNormal
 };
 
 osThreadId_t readFromUSBHandle;
@@ -105,10 +105,7 @@ const osMessageQueueAttr_t outputValuessHanlde_attributes = {
 		.mq_size = sizeof(outputDataQueueBuffer)
 };
 
-//SemaphoreHandle_t MutexQ;
 
-TestTimer timer;
-TestControler mainControlers;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -181,7 +178,7 @@ int main(void)
 
   /* Create the queue(s) */
   /* creation of myQueue01 */
-  myQueue01Handle = osMessageQueueNew (16, sizeof(uint16_t), &myQueue01_attributes);
+  //myQueue01Handle = osMessageQueueNew (16, sizeof(uint16_t), &myQueue01_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   //outputValuessHanlde = xQueueCreate(50,100*sizeof(char));
@@ -191,7 +188,7 @@ int main(void)
 
   /* Create the thread(s) */
   /* creation of mainTask */
-  mainTaskHandle = osThreadNew(StartDefaultTask, NULL, &mainTask_attributes);
+  //mainTaskHandle = osThreadNew(StartDefaultTask, NULL, &mainTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
 
@@ -535,9 +532,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-  if(htim->Instance == TIM2){
+  else if(htim->Instance == TIM2){
 	  timer.step++;
-	  if(timer.step == timer.maxstep){
+	  if(timer.step == timer.maxstep)
+	  {
 		  timer.step = 0;
 	  }
   }

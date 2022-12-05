@@ -10,13 +10,16 @@
 
 #include "stdio.h"
 #include "stm32f4xx_hal.h"
+#include "circular_buffer.h"
 
 //can be tune letter
 #define prescaler_uA 16 // 0,000066 * (1/4096) * 10^9
 #define prescaler_mA 32 // 0,0132 * (1/4096) * 10^6
 
 typedef struct{
-	char data[150];
+	uint32_t value[8];
+	uint8_t uinit[8];
+	uint8_t active[8];
 }Data_Q;
 
 typedef struct{
@@ -25,7 +28,7 @@ typedef struct{
 }TestTimer;
 
 typedef struct{
-	uint32_t value;
+	CircularBuffer buffer;
 	int32_t startTime;
 }Channel;
 

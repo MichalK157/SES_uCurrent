@@ -7,6 +7,8 @@
 #include "initstructures.h"
 #include "stdio.h"
 #include "string.h"
+#include "circular_buffer.h"
+
 
 void initTimer(TestTimer *obj)
 {
@@ -22,7 +24,7 @@ void resetTimer(TestTimer *obj)
 void initTestControler(TestControler *obj)
 {
 	memset(obj->activeChanelsCount, 0, (size_t)8);
-	obj->testtime = 20; // in [s]
+	obj->testtime = 60; // in [s]
 	obj->threshold_mA = 50; //need to check and add const value to define
 	obj->threshold_uA = 4080;
 }
@@ -44,5 +46,10 @@ void initChannelsControler(ChannelsControler *obj)
 {
 	memset(obj->active,DeviceOut,8);
 	memset(obj->unit,uA,8);
-	memset(obj->channel,0,8*sizeof(Channel));
+	for(uint8_t i = 0; i<8; i++)
+	{
+		circular_buffer_init(&obj->channel[i].buffer, 10);
+		obj->channel[i].startTime = 0;
+	}
+	//memset(obj->channel,0,8*sizeof(Channel));
 }

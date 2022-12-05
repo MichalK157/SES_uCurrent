@@ -54,12 +54,17 @@ TIM_HandleTypeDef htim2;
 
 /* Definitions for mainTask */
 
+/* Definitions for myQueue01 */
+osMessageQueueId_t myQueue01Handle;
+const osMessageQueueAttr_t myQueue01_attributes = {
+  .name = "myQueue01"
+};
 /* USER CODE BEGIN PV */
 osThreadId_t mainTaskHandle;
 const osThreadAttr_t mainTask_attributes = {
   .name = "mainTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityAboveNormal,
 };
 
 osThreadId_t readValuesHandle;
@@ -71,7 +76,7 @@ const osThreadAttr_t readValues_attributes = {
 		.cb_size = sizeof(readValues_CB),
 		.stack_mem = &readValuesBuffer[0],
 		.stack_size = sizeof(readValuesBuffer),
-		.priority = (osPriority_t) osPriorityAboveNormal
+		.priority = (osPriority_t) osPriorityNormal
 };
 
 osThreadId_t readFromUSBHandle;
@@ -100,10 +105,7 @@ const osMessageQueueAttr_t outputValuessHanlde_attributes = {
 		.mq_size = sizeof(outputDataQueueBuffer)
 };
 
-//SemaphoreHandle_t MutexQ;
 
-TestTimer timer;
-TestControler mainControlers;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -176,6 +178,7 @@ int main(void)
 
   /* Create the queue(s) */
   /* creation of myQueue01 */
+  //myQueue01Handle = osMessageQueueNew (16, sizeof(uint16_t), &myQueue01_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   //outputValuessHanlde = xQueueCreate(50,100*sizeof(char));
@@ -185,6 +188,7 @@ int main(void)
 
   /* Create the thread(s) */
   /* creation of mainTask */
+  //mainTaskHandle = osThreadNew(StartDefaultTask, NULL, &mainTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
 
@@ -466,7 +470,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, BSS_G1_Pin|BSS_G2_Pin|BSS_G3_Pin|BSS_G4_Pin
-                          |BSS_G5_Pin|BSS_G6_Pin|BSS_G7_Pin|BSS_G8_Pin, GPIO_PIN_RESET);
+                          |BSS_G5_Pin|BSS_G6_Pin|BSS_G7_Pin|BSS_G8_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : BSS_G1_Pin BSS_G2_Pin BSS_G3_Pin BSS_G4_Pin
                            BSS_G5_Pin BSS_G6_Pin BSS_G7_Pin BSS_G8_Pin */
@@ -497,6 +501,19 @@ static void MX_GPIO_Init(void)
   * @param  argument: Not used
   * @retval None
   */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void *argument)
+{
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END 5 */
+}
 
  /**
   * @brief  Period elapsed callback in non blocking mode
@@ -515,9 +532,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-  if(htim->Instance == TIM2){
+  else if(htim->Instance == TIM2){
 	  timer.step++;
-	  if(timer.step == timer.maxstep){
+	  if(timer.step == timer.maxstep)
+	  {
 		  timer.step = 0;
 	  }
   }

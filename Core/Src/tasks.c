@@ -12,136 +12,115 @@
 #include "string.h"
 #include "tasks.h"
 #include "errno.h"
+#include "initstructures.h"
 
 __IO uint32_t ADCValues[8];
 uint8_t RX_USB_Buffor[255];
 static ChannelsControler channels;
-extern ADC_HandleTypeDef hadc1;
-extern TIM_HandleTypeDef htim2;
-extern TestTimer timer;
-extern TestControler mainControlers;
-
-
+extern osThreadId_t mainTaskHandle;
 
 void m_mainTask(void *argument)
 {
-	extern osMessageQueueId_t outputValuessHanlde;
 	MX_USB_DEVICE_Init();
 	Data_Q data;
-	memset(&data, '\0',sizeof(Data_Q));
+	memset(&data, 0,sizeof(Data_Q));
+	osThreadSuspend(mainTaskHandle);
+	uint32_t channel_value = 0;
 	while(1)
 	{
-		//CDC_Transmit_FS((uint8_t*)"TEST\n\r", 6);
-
-		osStatus_t rv = osMessageQueueGet(outputValuessHanlde, &data, 0, 10);
-		if(rv == osOK)
+		for(uint8_t i=0; i<8; i++)
 		{
-			CDC_Transmit_FS((uint8_t*)data.data, strlen(data.data));
+			data.active[i] = channels.active[i];
+			if(channels.active[i] == TestRunnig)
+			{
+				channel_value = circular_buffer_calculate_mean(&channels.channel[i].buffer);
+				if(channel_value > 0x1000)
+				{
+					data.value[i] = channel_value & 0x0fff;
+					data.uinit[i] = mA;
+				}
+				else
+				{
+					data.value[i] = channel_value;
+					data.uinit[i] = uA;
+				}
+			}
 		}
-		osDelay(10);
+		CDC_Transmit_FS((uint8_t*)&data, sizeof(Data_Q));
+		osDelay(50);
 	}
 }
 void m_readValues(void *argument)
 {
-	extern osMessageQueueId_t outputValuessHanlde;
+	extern ADC_HandleTypeDef hadc1;
+	extern TIM_HandleTypeDef htim2;
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADCValues, 8);
 	HAL_TIM_Base_Start_IT(&htim2);
-	Data_Q data;
-	char channel[15];
-
+	initChannelsControler(&channels);
+	osThreadResume(mainTaskHandle);
+	uint32_t value_read = 0;
 	while(1)
 	{
 		//check active channels and test time duration.
 		//setup for next steps
-		memset(&data,'\0', sizeof(Data_Q));
 		for(int i = 0; i<8; i++)
 		{
-			if(mainControlers.activeChanelsCount[i] == Active)
+			if(mainControlers.activeChanelsCount[i] == Active && HAL_GPIO_ReadPin(GPIOB, InputPins[i]) == GPIO_PIN_RESET)
 			{
-				if(HAL_GPIO_ReadPin(GPIOB, InputPins[i]) == GPIO_PIN_RESET)
+				if(channels.active[i] == TestRunnig)
 				{
-					if(channels.active[i] == TestRunnig)
+					if(timer.step-channels.channel[i].startTime >= mainControlers.testtime)
 					{
-
-						if(timer.step-channels.channel[i].startTime >= mainControlers.testtime)
-						{
+						channels.active[i] = TestEndDeviceIn;
+					}
+					else if(timer.step-channels.channel[i].startTime<0)
+					{
+						if(timer.step-channels.channel[i].startTime + timer.maxstep >= mainControlers.testtime)
 							channels.active[i] = TestEndDeviceIn;
-						}
-						else if(timer.step-channels.channel[i].startTime<0)
-						{
-							if(timer.step-channels.channel[i].startTime + timer.maxstep >= mainControlers.testtime)
-								channels.active[i] = TestEndDeviceIn;
-							else
-								continue;
-						}
-						else
-							continue;
-
 					}
-					else if (channels.active[i] == DeviceOut)
-					{
-						channels.channel[i].startTime = timer.step;
-						channels.active[i] = TestRunnig;
-					}
-					else
-						continue;
 				}
-				else
+				else if (channels.active[i] == DeviceOut)
 				{
-					if(channels.active[i] != DeviceOut)
-						channels.active[i] = DeviceOut;
-
+					channels.channel[i].startTime = timer.step;
+					channels.active[i] = TestRunnig;
+				}
+			}
+			else
+			{
+				if(channels.active[i] != DeviceOut)
+				{
+					channels.active[i] = DeviceOut;
 				}
 			}
 		}
 
 		for(int i = 0; i<8; i++)
 		{
-			if(mainControlers.activeChanelsCount[i] == Active)
+			if(mainControlers.activeChanelsCount[i] == Active && channels.active[i] == TestRunnig)
 			{
-				if(channels.active[i]==TestRunnig)
+				value_read = ADCValues[i];
+
+				if(channels.unit[i] == uA)
 				{
-
-					memset((char*)&channel,'\0',15*sizeof(char));
-					channels.channel[i].value = ADCValues[i];
-
-					if(channels.unit[i] == uA)
+					circular_buffer_write(&channels.channel[i].buffer, value_read);
+					if(value_read >= mainControlers.threshold_uA)
 					{
-						sprintf(channel,"[%d]%ld{%s};",
-								i+1,
-								channels.channel[i].value*prescaler_uA,
-								"uA");
-						strcat(data.data,channel);
-						if(channels.channel[i].value >= mainControlers.threshold_uA)
-						{
-							channels.unit[i] = mA;
-							HAL_GPIO_WritePin(GPIOC, OutputPins[i], GPIO_PIN_SET);
-						}
-
+						channels.unit[i] = mA;
+						HAL_GPIO_WritePin(GPIOC, OutputPins[i], GPIO_PIN_SET);
 					}
-					else
+				}
+				else
+				{
+					circular_buffer_write(&channels.channel[i].buffer, value_read | 0x1000);
+					if(value_read <= mainControlers.threshold_mA)
 					{
-						sprintf(channel,"[%d]%ld{%s};",
-								i+1,channels.
-								channel[i].value*prescaler_mA,
-								"mA");
-						strcat(data.data,channel);
-						if(channels.channel[i].value <= mainControlers.threshold_mA)
-							channels.unit[i] = uA;
+						channels.unit[i] = uA;
 						HAL_GPIO_WritePin(GPIOC, OutputPins[i], GPIO_PIN_RESET);
 					}
 				}
-				else
-					continue;
 			}
 		}
-		//
-		if(strlen(data.data)>0)
-		{
-			strcat(data.data, "\n\r");
-			osMessageQueuePut(outputValuessHanlde, &data, 0,10);
-		}
-			osDelay(50);
+		osDelay(5);
 	}
 }
 void m_readFromUSB(void *argument)
@@ -150,7 +129,6 @@ void m_readFromUSB(void *argument)
 	char tempValues[64];
 	while(1)
 	{
-
 		if(strlen((char*)RX_USB_Buffor)>0)
 		{
 
@@ -184,7 +162,6 @@ void m_readFromUSB(void *argument)
 								ch++;
 							}
 					}
-
 					memset(tempCoonstance,'\0',64);
 					memset(tempValues,'\0',64);
 					l_iter = iter+1;

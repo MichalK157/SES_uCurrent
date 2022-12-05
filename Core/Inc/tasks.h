@@ -10,6 +10,8 @@
 
 #include "data_structures.h"
 
+static TestTimer timer;
+static TestControler mainControlers;
 //Methods
 
 

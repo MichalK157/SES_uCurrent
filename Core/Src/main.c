@@ -64,7 +64,7 @@ osThreadId_t mainTaskHandle;
 const osThreadAttr_t mainTask_attributes = {
   .name = "mainTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityAboveNormal,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 
 osThreadId_t readValuesHandle;
@@ -76,7 +76,7 @@ const osThreadAttr_t readValues_attributes = {
 		.cb_size = sizeof(readValues_CB),
 		.stack_mem = &readValuesBuffer[0],
 		.stack_size = sizeof(readValuesBuffer),
-		.priority = (osPriority_t) osPriorityNormal
+		.priority = (osPriority_t) osPriorityAboveNormal
 };
 
 osThreadId_t readFromUSBHandle;
@@ -117,6 +117,7 @@ static void MX_TIM2_Init(void);
 void StartDefaultTask(void *argument);
 
 /* USER CODE BEGIN PFP */
+extern __IO TestTimer timer;
 
 /* USER CODE END PFP */
 
@@ -157,7 +158,7 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  initTimer(&timer);
+  initTimer((TestTimer*)&timer);
   initTestControler(&mainControlers);
   /* USER CODE END 2 */
 
@@ -470,7 +471,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, BSS_G1_Pin|BSS_G2_Pin|BSS_G3_Pin|BSS_G4_Pin
-                          |BSS_G5_Pin|BSS_G6_Pin|BSS_G7_Pin|BSS_G8_Pin, GPIO_PIN_SET);
+                          |BSS_G5_Pin|BSS_G6_Pin|BSS_G7_Pin|BSS_G8_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : BSS_G1_Pin BSS_G2_Pin BSS_G3_Pin BSS_G4_Pin
                            BSS_G5_Pin BSS_G6_Pin BSS_G7_Pin BSS_G8_Pin */

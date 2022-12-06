@@ -24,7 +24,7 @@ void m_mainTask(void *argument)
 	MX_USB_DEVICE_Init();
 	Data_Q data;
 	memset(&data, 0,sizeof(Data_Q));
-	osThreadSuspend(mainTaskHandle);
+	//osThreadSuspend(mainTaskHandle);
 	uint32_t channel_value = 0;
 	while(1)
 	{
@@ -57,7 +57,7 @@ void m_readValues(void *argument)
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADCValues, 8);
 	HAL_TIM_Base_Start_IT(&htim2);
 	initChannelsControler(&channels);
-	osThreadResume(mainTaskHandle);
+	//osThreadResume(mainTaskHandle);
 	uint32_t value_read = 0;
 	while(1)
 	{

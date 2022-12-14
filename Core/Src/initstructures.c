@@ -10,7 +10,7 @@
 #include "circular_buffer.h"
 
 
-void initTimer(TestTimer *obj)
+void initTimer( TestTimer *obj)
 {
 	obj->maxstep = 10000;
 	obj->step = 0;
